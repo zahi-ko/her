@@ -5,6 +5,12 @@ File: pc_operator.py
 Author: Zahi
 Date: 2024-11-27
 Description: 
+    This module provides functionality to simulate various keyboard and mouse operations 
+    using the pyautogui library. It defines an Operation class for specifying operation 
+    details and a simulate_operation function to execute the operations. The module includes 
+    support for clicking, scrolling, writing input, pressing keys, and moving the cursor, 
+    along with comprehensive logging and validation to ensure reliable and controlled 
+    automation tasks.
 """
 import logging
 import pyautogui as pg
@@ -46,8 +52,17 @@ class Operation(BaseModel):
         return value
 
 
-def simulate_operation(operation: Operation):
-    """Simulate the operation."""
+def simulate_operation(operation: Operation) -> None:
+    """
+    **Simulate the given operation.**  
+    This function takes an Operation object and simulates the specified operation by performing actions such as clicks,
+    scrolls, writing input, and key presses. It logs the execution details and returns True upon successful completion.
+    Parameters:
+        operation (Operation): The operation to simulate, containing details such as operation type, coordinates,
+                               duration, scroll clicks, content, keys, etc.
+    Raises:
+        ValueError: If an unexpected operation type is encountered.
+    """
     oper_type = operation.operation
     logging.info(f"Simulating operation: {oper_type}")
 
@@ -83,5 +98,7 @@ def simulate_operation(operation: Operation):
             logging.error("Unexpeted execution, program terminated.")
             raise ValueError("Unexpected execution.")
         
+    logging.info(f"Operation {oper_type} completed.")
 
-    
+if __name__ == "__main__":
+    print("This module is not meant to be executed.")
