@@ -1,13 +1,30 @@
 import math
 import os
 import struct
-from sys import path
 import winreg
+import everytools
 import pyautogui
 import time
+import speech_recognition as sr
 
 from typing import TypedDict
-from everytools import EveryTools
+
+
+def recognize_speech_from_microphone():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("请开始说话...")
+        audio = r.listen(source)
+    try:
+        text = r.recognize_google(audio, language='zh-CN')
+        print("识别结果：" + text)
+        return text
+    except sr.UnknownValueError:
+        print("无法识别")
+        return None
+    except sr.RequestError as e:
+        print("请求错误：" + str(e))
+        return None
 
 class DesktopItem(TypedDict):
     entry_name: str
@@ -49,7 +66,7 @@ def _read_reg_value(value, mode):
         if mode == "click":
             item = DesktopItem(entry_name=entry_name, index=x, position=[0, 0])
         else:
-            item = Item(name=entry_name, path=os.path.join(os.path.expanduser("~\\Desktop"), entry_name))
+            item = Item(name=entry_name, path=os.path.join(os.path.expanduser(r"~\Desktop"), entry_name))
 
         desktop_items.append(item)
     if mode != "click": return desktop_items
@@ -98,36 +115,35 @@ def get_by_windows_search(app_name):
     pyautogui.write(app_name)
     pyautogui.press('enter')
 
-def get_by_everytools_search(app_name, max_results=5, search_type='all', ext=None):
-    et = EveryTools()
-
+def get_by_everytools_search(keywords, max_results=10, search_type='regex', ext=None):
+    et = everytools.EveryTools()
     match search_type:
         case 'regex':
-            et.search(app_name, regex=True)
+            et.search(keywords, regex=True)
         case 'audio':
-            et.search_audio(app_name)
+            et.search_audio(keywords)
         case 'video':
-            et.search_video(app_name)
+            et.search_video(keywords)
         case 'pic':
-            et.search_pic(app_name)
+            et.search_pic(keywords)
         case 'doc':
-            et.search_doc(app_name)
+            et.search_doc(keywords)
         case 'exe':
-            et.search_exe(app_name)
+            et.search_exe(keywords)
         case 'folder':
-            et.search_folder(app_name)
+            et.search_folder(keywords)
         case 'zip':
-            et.search_zip(app_name)
+            et.search_zip(keywords)
         case 'ext':
-            et.search_ext(ext=app_name) if ext else et.search(app_name)
+            et.search_ext(ext=keywords) if ext else et.search(keywords)
         case _:
-            et.search(app_name)
+            et.search(keywords)
         
     results = et.results(max_results)
     names = results.name
     paths = results.path
 
-    return [Item(name=name, path=path) for name, path in zip(names, paths)]
+    return [Item(name=name, path=os.path.join(path, name)) for name, path in zip(names, paths)]
 
 def _get_nth_row_column_value(n: int) -> int:
     if n == 1:
